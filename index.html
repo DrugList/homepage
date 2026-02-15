@@ -77,10 +77,11 @@
       align-items: center;
     }
 
-    /* Search */
+    /* Search - ALIGNED LEFT */
     .search-bar {
       position: relative;
-      margin-bottom: 2rem;
+      max-width: 600px;
+      margin: 0 0 2rem 0; /* Changed from auto to 0 to align left */
     }
     
     .search-input {
@@ -185,14 +186,15 @@
       border-color: var(--accent);
     }
 
-    /* Thumbnail Area - REDUCED HEIGHT */
+    /* Thumbnail Area */
     .card-image-wrap {
       position: relative;
       width: 100%;
-      height: 100px; /* Reduced from 140px to 100px */
+      height: 80px;
       background-color: var(--bg);
       overflow: hidden;
       flex-shrink: 0;
+      border-bottom: 1px solid var(--border); /* SEPARATION LINE */
     }
 
     .card-image {
@@ -240,10 +242,10 @@
     /* Favorite Button */
     .fav-btn {
       position: absolute;
-      top: 0.5rem; /* Adjusted for smaller image */
+      top: 0.5rem;
       right: 0.5rem;
       z-index: 10;
-      width: 28px; /* Slightly smaller button */
+      width: 28px;
       height: 28px;
       background: rgba(0,0,0,0.6);
       backdrop-filter: blur(4px);
@@ -274,6 +276,7 @@
     @media (max-width: 640px) {
       .masonry-grid { grid-template-columns: 1fr; gap: 1rem; }
       .header { margin-bottom: 1.5rem; }
+      .search-bar { max-width: 100%; }
     }
   </style>
 </head>
@@ -315,9 +318,9 @@
 
     <!-- Grid -->
     <div class="masonry-grid" id="grid">
-      <div class="skeleton" style="height:200px;"></div>
-      <div class="skeleton" style="height:200px;"></div>
-      <div class="skeleton" style="height:200px;"></div>
+      <div class="skeleton" style="height:180px;"></div>
+      <div class="skeleton" style="height:180px;"></div>
+      <div class="skeleton" style="height:180px;"></div>
     </div>
   </div>
 
@@ -344,38 +347,23 @@
     function fixImageUrl(url) {
       if (!url) return 'https://via.placeholder.com/400x200/18181b/a1a1aa?text=No+Image';
       
-      // 1. Check if it's a Google Drive link
       if (url.includes('drive.google.com')) {
         let id = null;
-        
-        // Format: /d/ID/...
         if (url.includes('/d/')) {
           const parts = url.split('/d/');
-          if (parts[1]) {
-            id = parts[1].split('/')[0];
-          }
+          if (parts[1]) id = parts[1].split('/')[0];
         }
-        // Format: open?id=ID or uc?id=ID
         else if (url.includes('id=')) {
           const parts = url.split('id=');
-          if (parts[1]) {
-            id = parts[1].split('&')[0];
-          }
+          if (parts[1]) id = parts[1].split('&')[0];
         }
-
-        // If we found an ID, use the reliable thumbnail link
-        if (id) {
-          // This is the specific endpoint that works best for embedding
-          return `https://drive.google.com/thumbnail?id=${id}&sz=w400`;
-        }
+        if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w400`;
       }
-      
       return url;
     }
 
     async function fetchData() {
       const url = `${CSV_URL}&t=${Date.now()}`;
-      
       try {
         const response = await fetch(url);
         const text = await response.text();
@@ -383,20 +371,18 @@
         
         if (rows.length === 0) return;
 
-        // 1. Get Title from Cell A1
         if (rows[0] && rows[0][0]) {
            const titleFromSheet = rows[0][0];
            siteTitle.textContent = titleFromSheet;
            document.title = titleFromSheet;
         }
 
-        // 2. Process Data (Skip first 2 rows)
         links = rows.slice(2).map((row, idx) => {
           return {
             id: idx,
             title: row[0] || '',
             desc: row[1] || '',
-            img: fixImageUrl(row[2]), // Apply fix here
+            img: fixImageUrl(row[2]),
             url: row[3] || ''
           };
         }).filter(item => item.title.length > 0 && item.url.length > 0);
@@ -404,9 +390,7 @@
         render();
       } catch (err) {
         console.error(err);
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color: var(--fg-muted);">
-          Error loading data. <br> Ensure Sheet is "Published to Web".
-        </div>`;
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color: var(--fg-muted);">Error loading data.</div>`;
       }
     }
 
@@ -416,17 +400,13 @@
         const result = [];
         let current = '';
         let inQuotes = false;
-        
         for (let i = 0; i < line.length; i++) {
           const char = line[i];
-          if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === ',' && !inQuotes) {
+          if (char === '"') inQuotes = !inQuotes;
+          else if (char === ',' && !inQuotes) {
             result.push(current.trim());
             current = '';
-          } else {
-            current += char;
-          }
+          } else current += char;
         }
         result.push(current.trim());
         return result;
@@ -435,7 +415,6 @@
 
     function render() {
       const term = searchInput.value.toLowerCase();
-      
       const filtered = links.filter(l => {
         const matchSearch = l.title.toLowerCase().includes(term) || l.desc.toLowerCase().includes(term);
         const matchFav = currentFilter === 'all' || (currentFilter === 'favorites' && favorites.includes(l.id));
@@ -447,13 +426,7 @@
         return `
           <article class="link-card" onclick="window.open('${link.url}', '_blank')">
             <div class="card-image-wrap">
-              <img 
-                src="${link.img}" 
-                alt="${link.title}" 
-                class="card-image" 
-                loading="lazy" 
-                onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200/18181b/a1a1aa?text=Image+Error';"
-              >
+              <img src="${link.img}" alt="${link.title}" class="card-image" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200/18181b/a1a1aa?text=Error';">
               <button class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav(${link.id})" aria-label="Toggle favorite">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? '#ef4444' : 'none'}" stroke="currentColor" stroke-width="2">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -470,11 +443,8 @@
     }
 
     window.toggleFav = (id) => {
-      if (favorites.includes(id)) {
-        favorites = favorites.filter(f => f !== id);
-      } else {
-        favorites.push(id);
-      }
+      if (favorites.includes(id)) favorites = favorites.filter(f => f !== id);
+      else favorites.push(id);
       localStorage.setItem('smartHub_fav', JSON.stringify(favorites));
       render();
     };
@@ -503,7 +473,7 @@
     });
 
     refreshBtn.addEventListener('click', () => {
-      grid.innerHTML = '<div class="skeleton" style="height:200px;"></div>'.repeat(3);
+      grid.innerHTML = '<div class="skeleton" style="height:180px;"></div>'.repeat(3);
       fetchData();
     });
 
