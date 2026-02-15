@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-elevated: #18181b;
+      --fg: #fafafa;
+      --fg-muted: #a1a1aa;
+      --accent: #f59e0b;
+      --card-bg: #18181b;
+      --border: #27272a;
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f4f5;
+      --bg-elevated: #ffffff;
+      --fg: #18181b;
+      --fg-muted: #52525b;
+      --accent: #d97706;
+      --card-bg: #ffffff;
+      --border: #e4e4e7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    /* Search */
+    .search-bar {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 1rem 1.5rem 1rem 3rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--fg);
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--fg-muted);
+      pointer-events: none;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--fg-muted);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .filter-btn:hover { border-color: var(--fg-muted); color: var(--fg); }
+    .filter-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover { border-color: var(--fg-muted); color: var(--fg); }
+    .icon-btn.active { color: var(--accent); border-color: var(--accent); }
+
+    /* Grid Layout */
+    .masonry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* Card Design */
+    .link-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+    }
+
+    .link-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border-color: var(--accent);
+    }
+
+    /* Thumbnail Area */
+    .card-image-wrap {
+      position: relative;
+      width: 100%;
+      height: 140px; 
+      background-color: var(--bg);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .link-card:hover .card-image {
+      transform: scale(1.05);
+    }
+
+    .card-content {
+      position: relative;
+      padding: 1.25rem;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-bottom: 0.35rem;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: var(--fg);
+    }
+
+    .card-desc {
+      font-size: 0.875rem;
+      color: var(--fg-muted);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Favorite Button */
+    .fav-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      z-index: 10;
+      width: 32px;
+      height: 32px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+    }
+
+    .fav-btn:hover { background: rgba(0,0,0,0.8); transform: scale(1.1); }
+    .fav-btn.active { color: #ef4444; }
+    .fav-btn.active svg { fill: #ef4444; }
+
+    /* Skeleton Loading */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 50%, var(--bg-elevated) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 12px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* Print Styles */
+    @media print {
+      body { background: white; color: black; }
+      .header-actions, .search-bar, .controls { display: none; }
+      .link-card { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .masonry-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .header { margin-bottom: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <!-- Title comes from Sheet Cell A1 -->
+        <span id="siteTitle">Loading...</span>
+      </div>
+      
+      <div class="header-actions">
+        <button class="icon-btn" id="refreshBtn" title="Refresh Data">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/><polyline points="21 3 21 9 15 9"/></svg>
+        </button>
+        <button class="icon-btn" id="themeToggle" title="Toggle Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search your links...">
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="favorites">Favorites</button>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="masonry-grid" id="grid">
+      <div class="skeleton" style="height:240px;"></div>
+      <div class="skeleton" style="height:240px;"></div>
+      <div class="skeleton" style="height:240px;"></div>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_ID = '1NRB-fnll-FvxifO5wL2Hj-fNPZIbgmuxmBbIOqjyg3I';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+    
+    let links = [];
+    let favorites = JSON.parse(localStorage.getItem('smartHub_fav') || '[]');
+    let currentFilter = 'all';
+
+    const grid = document.getElementById('grid');
+    const siteTitle = document.getElementById('siteTitle');
+    const searchInput = document.getElementById('searchInput');
+    const themeToggle = document.getElementById('themeToggle');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.setAttribute('data-theme', 'light');
+    }
+
+    // Helper: Convert Google Drive links to direct image links
+    function fixImageUrl(url) {
+      if (!url) return 'https://via.placeholder.com/400x200/18181b/a1a1aa?text=No+Image';
+      
+      if (url.includes('drive.google.com/open?id=')) {
+        const id = url.split('id=')[1].split('&')[0];
+        return `https://drive.google.com/uc?export=view&id=${id}`;
+      }
+      if (url.includes('drive.google.com/file/d/')) {
+        const parts = url.split('/d/');
+        if (parts[1]) {
+           const id = parts[1].split('/')[0];
+           return `https://drive.google.com/uc?export=view&id=${id}`;
+        }
+      }
+      return url;
+    }
+
+    async function fetchData() {
+      const url = `${CSV_URL}&t=${Date.now()}`;
+      
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const rows = parseCSV(text);
+        
+        if (rows.length === 0) return;
+
+        // 1. Get Title from Cell A1 (Row 0, Column 0)
+        // This effectively "hides" the first row from the data display
+        if (rows[0] && rows[0][0]) {
+           const titleFromSheet = rows[0][0];
+           siteTitle.textContent = titleFromSheet;
+           document.title = titleFromSheet;
+        }
+
+        // 2. Process Data
+        // We slice(2) to skip Row 1 (Config) AND Row 2 (Headers)
+        // This ensures headers don't show up as a card.
+        links = rows.slice(2).map((row, idx) => {
+          return {
+            id: idx,
+            title: row[0] || '',
+            desc: row[1] || '',
+            img: fixImageUrl(row[2]),
+            url: row[3] || ''
+          };
+        }).filter(item => item.title.length > 0 && item.url.length > 0);
+
+        render();
+      } catch (err) {
+        console.error(err);
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color: var(--fg-muted);">
+          Error loading data. Check console (F12). <br>
+          Ensure Sheet is "Published to Web" (File > Share > Publish to Web).
+        </div>`;
+      }
+    }
+
+    function parseCSV(text) {
+      const lines = text.split('\n');
+      return lines.map(line => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      });
+    }
+
+    function render() {
+      const term = searchInput.value.toLowerCase();
+      
+      const filtered = links.filter(l => {
+        const matchSearch = l.title.toLowerCase().includes(term) || l.desc.toLowerCase().includes(term);
+        const matchFav = currentFilter === 'all' || (currentFilter === 'favorites' && favorites.includes(l.id));
+        return matchSearch && matchFav;
+      });
+
+      grid.innerHTML = filtered.map(link => {
+        const isFav = favorites.includes(link.id);
+        return `
+          <article class="link-card" onclick="window.open('${link.url}', '_blank')">
+            <div class="card-image-wrap">
+              <img 
+                src="${link.img}" 
+                alt="${link.title}" 
+                class="card-image" 
+                loading="lazy" 
+                onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200/18181b/a1a1aa?text=Error';"
+              >
+              <button class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav(${link.id})" aria-label="Toggle favorite">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? '#ef4444' : 'none'}" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">${link.title}</h3>
+              <p class="card-desc">${link.desc}</p>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    window.toggleFav = (id) => {
+      if (favorites.includes(id)) {
+        favorites = favorites.filter(f => f !== id);
+      } else {
+        favorites.push(id);
+      }
+      localStorage.setItem('smartHub_fav', JSON.stringify(favorites));
+      render();
+    };
+
+    const toggleTheme = () => {
+      const isLight = document.body.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.body.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+    };
+
+    themeToggle.addEventListener('click', toggleTheme);
+    searchInput.addEventListener('input', render);
+    
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    refreshBtn.addEventListener('click', () => {
+      grid.innerHTML = '<div class="skeleton" style="height:240px;"></div>'.repeat(3);
+      fetchData();
+    });
+
+    fetchData();
+  </script>
+</body>
+</html>
