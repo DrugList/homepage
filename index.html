@@ -81,7 +81,7 @@
     .search-bar {
       position: relative;
       max-width: 600px;
-      margin: 0 0 2rem 0; /* Aligned left */
+      margin: 0 0 2rem 0;
     }
     
     .search-input {
@@ -170,8 +170,12 @@
 
     /* Grid Layout - List View */
     .masonry-grid.list-view {
-      grid-template-columns: 1fr; /* Single column */
+      display: flex;
+      flex-direction: column;
       gap: 0.75rem;
+      /* KEY CHANGE: Shrinks container to fit the widest item, preventing awkward stretching */
+      width: fit-content; 
+      max-width: 100%; /* Safety for mobile */
     }
 
     /* Card Design */
@@ -249,17 +253,18 @@
 
     /* --- LIST VIEW SPECIFIC STYLES --- */
     .masonry-grid.list-view .link-card {
-      flex-direction: row; /* Image and content side-by-side */
+      flex-direction: row;
       align-items: center;
       padding: 0;
+      width: 100%; /* Fills the fit-content container */
     }
 
     .masonry-grid.list-view .card-image-wrap {
-      width: 60px; /* Small fixed width image */
+      width: 60px;
       height: 60px;
       border-bottom: none;
       border-right: 1px solid var(--border);
-      border-radius: 12px 0 0 12px; /* Round left corners */
+      border-radius: 12px 0 0 12px;
     }
 
     .masonry-grid.list-view .card-content {
@@ -272,12 +277,18 @@
     .masonry-grid.list-view .card-title {
       font-size: 0.95rem;
       margin-bottom: 0.15rem;
-      -webkit-line-clamp: 1; /* Single line for list */
+      -webkit-line-clamp: 1;
+      white-space: nowrap; /* Force one line to define width */
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .masonry-grid.list-view .card-desc {
       font-size: 0.8rem;
-      -webkit-line-clamp: 1; /* Single line for list */
+      -webkit-line-clamp: 1;
+      white-space: nowrap; /* Force one line to define width */
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Favorite Button */
@@ -328,8 +339,11 @@
       .masonry-grid { grid-template-columns: 1fr; gap: 1rem; }
       .header { margin-bottom: 1.5rem; }
       .search-bar { max-width: 100%; }
-      /* On mobile, list view looks good, but force single column anyway */
-      .masonry-grid.list-view { grid-template-columns: 1fr; }
+      
+      /* Force full width on mobile for list view */
+      .masonry-grid.list-view {
+        width: 100%;
+      }
     }
   </style>
 </head>
