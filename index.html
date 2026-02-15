@@ -157,7 +157,6 @@
     }
 
     .icon-btn:hover { border-color: var(--fg-muted); color: var(--fg); }
-    .icon-btn.active { color: var(--accent); border-color: var(--accent); }
 
     /* Grid Layout */
     .masonry-grid {
@@ -186,11 +185,11 @@
       border-color: var(--accent);
     }
 
-    /* Thumbnail Area */
+    /* Thumbnail Area - REDUCED HEIGHT */
     .card-image-wrap {
       position: relative;
       width: 100%;
-      height: 140px; 
+      height: 100px; /* Reduced from 140px to 100px */
       background-color: var(--bg);
       overflow: hidden;
       flex-shrink: 0;
@@ -241,11 +240,11 @@
     /* Favorite Button */
     .fav-btn {
       position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
+      top: 0.5rem; /* Adjusted for smaller image */
+      right: 0.5rem;
       z-index: 10;
-      width: 32px;
-      height: 32px;
+      width: 28px; /* Slightly smaller button */
+      height: 28px;
       background: rgba(0,0,0,0.6);
       backdrop-filter: blur(4px);
       border: none;
@@ -271,13 +270,6 @@
     }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-    /* Print Styles */
-    @media print {
-      body { background: white; color: black; }
-      .header-actions, .search-bar, .controls { display: none; }
-      .link-card { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
-    }
-
     /* Mobile */
     @media (max-width: 640px) {
       .masonry-grid { grid-template-columns: 1fr; gap: 1rem; }
@@ -294,7 +286,6 @@
         <div class="logo-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </div>
-        <!-- Title comes from Sheet Cell A1 -->
         <span id="siteTitle">Loading...</span>
       </div>
       
@@ -324,9 +315,9 @@
 
     <!-- Grid -->
     <div class="masonry-grid" id="grid">
-      <div class="skeleton" style="height:240px;"></div>
-      <div class="skeleton" style="height:240px;"></div>
-      <div class="skeleton" style="height:240px;"></div>
+      <div class="skeleton" style="height:200px;"></div>
+      <div class="skeleton" style="height:200px;"></div>
+      <div class="skeleton" style="height:200px;"></div>
     </div>
   </div>
 
@@ -349,21 +340,36 @@
       document.body.setAttribute('data-theme', 'light');
     }
 
-    // Helper: Convert Google Drive links to direct image links
+    // HELPER: Advanced Google Drive Image Fix
     function fixImageUrl(url) {
       if (!url) return 'https://via.placeholder.com/400x200/18181b/a1a1aa?text=No+Image';
       
-      if (url.includes('drive.google.com/open?id=')) {
-        const id = url.split('id=')[1].split('&')[0];
-        return `https://drive.google.com/uc?export=view&id=${id}`;
-      }
-      if (url.includes('drive.google.com/file/d/')) {
-        const parts = url.split('/d/');
-        if (parts[1]) {
-           const id = parts[1].split('/')[0];
-           return `https://drive.google.com/uc?export=view&id=${id}`;
+      // 1. Check if it's a Google Drive link
+      if (url.includes('drive.google.com')) {
+        let id = null;
+        
+        // Format: /d/ID/...
+        if (url.includes('/d/')) {
+          const parts = url.split('/d/');
+          if (parts[1]) {
+            id = parts[1].split('/')[0];
+          }
+        }
+        // Format: open?id=ID or uc?id=ID
+        else if (url.includes('id=')) {
+          const parts = url.split('id=');
+          if (parts[1]) {
+            id = parts[1].split('&')[0];
+          }
+        }
+
+        // If we found an ID, use the reliable thumbnail link
+        if (id) {
+          // This is the specific endpoint that works best for embedding
+          return `https://drive.google.com/thumbnail?id=${id}&sz=w400`;
         }
       }
+      
       return url;
     }
 
@@ -377,23 +383,20 @@
         
         if (rows.length === 0) return;
 
-        // 1. Get Title from Cell A1 (Row 0, Column 0)
-        // This effectively "hides" the first row from the data display
+        // 1. Get Title from Cell A1
         if (rows[0] && rows[0][0]) {
            const titleFromSheet = rows[0][0];
            siteTitle.textContent = titleFromSheet;
            document.title = titleFromSheet;
         }
 
-        // 2. Process Data
-        // We slice(2) to skip Row 1 (Config) AND Row 2 (Headers)
-        // This ensures headers don't show up as a card.
+        // 2. Process Data (Skip first 2 rows)
         links = rows.slice(2).map((row, idx) => {
           return {
             id: idx,
             title: row[0] || '',
             desc: row[1] || '',
-            img: fixImageUrl(row[2]),
+            img: fixImageUrl(row[2]), // Apply fix here
             url: row[3] || ''
           };
         }).filter(item => item.title.length > 0 && item.url.length > 0);
@@ -402,8 +405,7 @@
       } catch (err) {
         console.error(err);
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color: var(--fg-muted);">
-          Error loading data. Check console (F12). <br>
-          Ensure Sheet is "Published to Web" (File > Share > Publish to Web).
+          Error loading data. <br> Ensure Sheet is "Published to Web".
         </div>`;
       }
     }
@@ -450,7 +452,7 @@
                 alt="${link.title}" 
                 class="card-image" 
                 loading="lazy" 
-                onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200/18181b/a1a1aa?text=Error';"
+                onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200/18181b/a1a1aa?text=Image+Error';"
               >
               <button class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav(${link.id})" aria-label="Toggle favorite">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? '#ef4444' : 'none'}" stroke="currentColor" stroke-width="2">
@@ -501,7 +503,7 @@
     });
 
     refreshBtn.addEventListener('click', () => {
-      grid.innerHTML = '<div class="skeleton" style="height:240px;"></div>'.repeat(3);
+      grid.innerHTML = '<div class="skeleton" style="height:200px;"></div>'.repeat(3);
       fetchData();
     });
 
